@@ -32,4 +32,13 @@
         android:onClick="onClick"
         android:text="Search" />
 
+    <Button
+        android:id="@+id/goTo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/searchButton"
+        android:layout_below="@+id/searchButton"
+        android:onClick="onClick"
+        android:text="Go" />
+
 </RelativeLayout>
