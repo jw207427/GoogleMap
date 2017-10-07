@@ -41,4 +41,13 @@
         android:onClick="onClick"
         android:text="Go" />
 
+    <Button
+        android:id="@+id/DirectTo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/goTo"
+        android:onClick="onClick"
+        android:text="Direction" />
+
 </RelativeLayout>

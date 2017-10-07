@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -52,6 +53,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     int PROXIMITY_RADIUS = 10000;
     double latitude, longitude;
     double end_latitude, end_longitude;
+    View mapView;
+    String url;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        mapView = mapFragment.getView();
         mapFragment.getMapAsync(this);
     }
 
@@ -110,6 +114,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setMyLocationEnabled(true);
         }
 
+        // Set my current location
+        //LatLng curLocation = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+        //mMap.addMarker(new MarkerOptions().position(curLocation).title("My Current Location"));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(curLocation));
+
+        if (mapView != null &&
+                mapView.findViewById(Integer.parseInt("1")) != null) {
+            // Get the button view
+            View locationButton = ((View) mapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+            // and next place it, on bottom right (as Google Maps app)
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                    locationButton.getLayoutParams();
+            // position on right bottom
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+            layoutParams.setMargins(0, 0, 30, 30);
+        }
+
         mMap.setOnMarkerClickListener(this);
         mMap.setOnMarkerDragListener(this);
     }
@@ -145,7 +167,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         currentLocationMarker = mMap.addMarker(markerOptions);
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomBy(10));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
 
         if(client != null){
             LocationServices.FusedLocationApi.removeLocationUpdates(client, this);
@@ -172,6 +194,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             for(int i = 0;i<addressList.size();i++)
                             {
                                 LatLng latLng = new LatLng(addressList.get(i).getLatitude() , addressList.get(i).getLongitude());
+                                end_latitude = addressList.get(i).getLatitude();
+                                end_longitude = addressList.get(i).getLongitude();
                                 MarkerOptions markerOptions = new MarkerOptions();
                                 markerOptions.position(latLng);
                                 markerOptions.title(location);
@@ -186,17 +210,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 break;
             case R.id.goTo:
-                mMap.clear();
-                MarkerOptions markerOption =  new MarkerOptions();
-                markerOption.position(new LatLng(end_latitude, end_longitude));
-                markerOption.title("New Location");
+                if(end_latitude != 0 && end_longitude !=0) {
+                    mMap.clear();
+                    MarkerOptions markerOption = new MarkerOptions();
+                    markerOption.position(new LatLng(end_latitude, end_longitude));
+                    markerOption.title("Calculate Distance");
 
-                float results[] = new float[10];
-                Location.distanceBetween(latitude, longitude, end_latitude, end_longitude, results);
-                markerOption.snippet("Distance = " + results[0]);
-                mMap.addMarker(markerOption);
+                    float results[] = new float[10];
+                    Location.distanceBetween(latitude, longitude, end_latitude, end_longitude, results);
+                    markerOption.snippet("Distance = " + results[0]);
+                    mMap.addMarker(markerOption);
+                }
+                break;
+            case R.id.DirectTo:
+                dataTransfer = new Object[3];
+                url = getDirectionUrl();
+                GetDirectionsData getDirectionsData = new GetDirectionsData();
+                dataTransfer[0] = mMap;
+                dataTransfer[1] = url;
+
+                dataTransfer[2] = new LatLng(end_latitude, end_longitude);
+
+                getDirectionsData.execute(dataTransfer);
                 break;
         }
+    }
+
+    private String getDirectionUrl(){
+        StringBuilder googleDirectionUrl = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
+        googleDirectionUrl.append("orgin="+latitude+","+longitude);
+        googleDirectionUrl.append("&destination="+end_latitude+","+end_longitude);
+        googleDirectionUrl.append("&key="+"AIzaSyCnaFQXFehoY4SwsxwDTQAYw7AHooFO7k0");
+
+        return googleDirectionUrl.toString();
     }
     @Override
     public void onConnected(@Nullable Bundle bundle) {
