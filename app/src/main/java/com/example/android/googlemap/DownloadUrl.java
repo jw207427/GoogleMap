@@ -1,5 +1,8 @@
 package com.example.android.googlemap;
 
+import android.util.Log;
+import android.renderscript.ScriptGroup;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +40,7 @@ public class DownloadUrl {
             }
 
             data = sb.toString();
+            Log.d("downloadUrl", data.toString());
             br.close();
 
         }
@@ -48,10 +52,13 @@ public class DownloadUrl {
             e.printStackTrace();
         }
         finally {
-            inputStream.close();
+            if(inputStream != null){
+                inputStream.close();
+            }
             urlConnection.disconnect();
         }
 
+        Log.d("data download", data);
         return data;
     }
 }

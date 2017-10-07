@@ -19,6 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -35,6 +36,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -65,6 +67,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             checkLocationPermission();
         }
 
+        //Check if Goodgle Play Services Available or not
+        if(!CheckGooglePlayServices()){
+            Log.d("onCreate", "Finishing test case since Google Play Services are not available");
+            finish();
+        }
+        else{
+            Log.d("onCreate", "Google Play Services available.");
+        }
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -72,6 +82,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
+    private boolean CheckGooglePlayServices(){
+        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+
+        int result = googleAPI.isGooglePlayServicesAvailable(this);
+        if(result != ConnectionResult.SUCCESS){
+            if(googleAPI.isUserResolvableError(result))
+            {
+                googleAPI.getErrorDialog(this, result, 0).show();
+
+            }
+            return false;
+        }
+        return true;
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch(requestCode) {
@@ -169,8 +193,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
 
+        Toast.makeText(MapsActivity.this, "Your Current Location", Toast.LENGTH_LONG).show();
+
         if(client != null){
             LocationServices.FusedLocationApi.removeLocationUpdates(client, this);
+            Log.d("onLocationChanged", "Removing Location Updates");
         }
     }
 
@@ -224,7 +251,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case R.id.DirectTo:
                 dataTransfer = new Object[3];
-                url = getDirectionUrl();
+                url = getDirectionsUrl();
                 GetDirectionsData getDirectionsData = new GetDirectionsData();
                 dataTransfer[0] = mMap;
                 dataTransfer[1] = url;
@@ -236,19 +263,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private String getDirectionUrl(){
-        StringBuilder googleDirectionUrl = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
-        googleDirectionUrl.append("orgin="+latitude+","+longitude);
-        googleDirectionUrl.append("&destination="+end_latitude+","+end_longitude);
-        googleDirectionUrl.append("&key="+"AIzaSyCnaFQXFehoY4SwsxwDTQAYw7AHooFO7k0");
+    private String getDirectionsUrl()
+    {
+        StringBuilder googleDirectionsUrl = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
+        googleDirectionsUrl.append("origin="+latitude+","+longitude);
+        googleDirectionsUrl.append("&destination="+end_latitude+","+end_longitude);
+        googleDirectionsUrl.append("&key="+"AIzaSyCnaFQXFehoY4SwsxwDTQAYw7AHooFO7k0");
 
-        return googleDirectionUrl.toString();
+        return googleDirectionsUrl.toString();
     }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         locationRequest = new LocationRequest();
 
-        locationRequest.setInterval(100);
+        locationRequest.setInterval(1000);
         locationRequest.setFastestInterval(1000);
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
