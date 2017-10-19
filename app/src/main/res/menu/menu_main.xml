@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+<item
+    android:id="@+id/navigation_maps"
+    android:icon="@drawable/ic_nearby"
+    android:title="Map" />
+
+<item
+    android:id="@+id/navigation_restaurants"
+    android:icon="@drawable/ic_restaurants"
+    android:title="Restaurants" />
+
+<item
+    android:id="@+id/navigation_favorites"
+    android:icon="@drawable/ic_favorites"
+    android:title="Favorite" />
+
+</menu>
